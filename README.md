@@ -1,28 +1,69 @@
-# CodingAssignment
-Coding Assignment for XYZ Bank 
+# XYZ Bank: Transition to Cloud-Based Azure Storage
 
-Step 1: Set Up the Azure Environment
-Create an Azure Storage Account:
+## Overview
 
-Set up an Azure Data Lake Storage Gen2 account for centralized storage.
+XYZ Bank is transitioning from a traditional Datawarehouse to a centralized, cloud-based Azure storage solution. This shift involves transmitting incremental daily snapshots of data to Azure Data Lake Storage from On-Prem systems and other sources.
 
-Create Containers and Directories:
+The Marketing System (MS) now needs to design a system to ingest these datasets daily from the centralized storage into their designated storage account. Necessary operations must be performed on the datasets to ensure they are readily accessible for dashboarding purposes.
 
-Create containers in the storage account to hold the daily snapshots of data.
+## Objective
 
-Create directories within the containers to organize the data by date.
+Calculate the balance of each account number after each transaction using the provided dataset. The dataset includes details of all the credits and debits made to accounts daily. The task involves reading the dataset and performing the necessary transformations using PySpark.
 
-Step 2: Data Ingestion Process
-Daily Data Upload:
+Steps to Implement
+------------------
 
-Set up mechanisms to upload daily snapshots from on-prem systems to Azure Data Lake Storage.
+1.  **Set Up the Azure Environment**
+    
+    *   Create an Azure Data Lake Storage Gen2 account for centralized storage.
+        
+    *   Create containers and directories to organize data by date.
+        
+2.  **Data Ingestion Process**
+    
+    *   Set up mechanisms to upload daily snapshots from on-prem systems to Azure Data Lake Storage using Azure Data Factory.
+        
+3.  **Validate and Test the Transformation**
+    
+    *   Use the provided sample dataset to validate the script.
+        
+    *   Perform integration testing to ensure the system works end-to-end.
+        
+4.  **Dashboarding**
+    
+    *   Set up the Marketing System to access the transformed datasets.
+        
+    *   Use visualization tools like Power BI to create dashboards from the transformed data.
 
-Use Azure Data Factory to automate and schedule the data transfer process.
+## Dataset Description
 
-Step 3: Design the PySpark Script for Data Transformation
-Here is the PySpark script to calculate the balance of each account number after each transaction:
+The dataset includes the following columns:
+- **TransactionDate:** The date of the transaction
+- **AccountNumber:** The unique identifier for the account
+- **TransactionType:** The type of transaction (Credit or Debit)
+- **Amount:** The amount of the transaction
+- **CurrentBalance:** The balance of the account after the transaction
+
+## Sample Data
+
+```plaintext
+TransactionDate  AccountNumber  TransactionType  Amount
+20230101          100            Credit           1000
+20230102          100            Credit           1500
+20230103          100            Debit            1000
+20230102          200            Credit           3500
+20230103          200            Debit            2000
+20230104          200            Credit           3500
+20230113          300            Credit           4000
+20230114          300            Debit            4500
+20230115          300            Credit           1500
+```
+## Python Code
+
+```python
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum as _sum
+from pyspark.sql.window import Window
 
 # Initialize Spark Session
 spark = SparkSession.builder.appName("FinancialTransactionAnalysis").getOrCreate()
@@ -57,26 +98,24 @@ df = df.withColumn(
 
 # Write the result to a CSV file
 df.write.csv("path/to/output/final_balances.csv", header=True)
-
 spark.stop()
+```
 
+## Results
+After running the PySpark script, the dataset is transformed to include the current balance of each account number after each transaction.
 
-Step 4: Validate and Test the Transformation
-Test Data:
+## Transformed Data Output
 
-Use the provided sample dataset to validate the script and ensure it calculates the balances correctly.
+```plaintext
+TransactionDate  AccountNumber  TransactionType  Amount  CurrentBalance
+20230101          100            Credit           1000     1000
+20230102          100            Credit           1500     2500
+20230103          100            Debit            1000     1500
+20230102          200            Credit           3500     3500
+20230103          200            Debit            2000     1500
+20230104          200            Credit           3500     5000
+20230113          300            Credit           4000     4000
+20230114          300            Debit            4500     -500
+20230115          300            Credit           1500     1000
+```
 
-Integration Testing:
-
-Test the entire workflow from data ingestion to final CSV output to ensure the system works end-to-end.
-
-Step 5: Dashboarding
-Accessing Data:
-
-Once the data is transformed and stored in Azure Data Lake Storage, set up the Marketing System to access these datasets.
-
-Visualization Tools:
-
-Use Power BI or other visualization tools to create dashboards from the transformed data.
-
-This approach ensures that the data is ingested, processed, and made available for dashboarding in a scalable and efficient manner.
